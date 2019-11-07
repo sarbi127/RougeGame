@@ -19,8 +19,10 @@ namespace RougeGame
 
                     //IDrawable drawable = map.CreatureAt(cell) ?? cell;
                     IDrawable drawable = map.Creatures.CreatureAtExten(cell) ??
-                                         (IDrawable)cell.Items.FirstOrDefault() ?? 
-                                         cell;
+
+                        (IDrawable)cell.Items.FirstOrDefault() ??
+
+                        cell;
 
 
 

@@ -86,10 +86,12 @@ namespace RougeGame
 
                     PickUp();
                     break;
+
                 case ConsoleKey.I:
 
                     Inventory();
                     break;
+
                 case ConsoleKey.Q:
 
                     gameInProgress = false;
@@ -156,11 +158,8 @@ namespace RougeGame
             map.Creatures.Add(new Ogre(map.GetCell(8, 3)));
 
             map.GetCell(3, 3).Items.Add(Item.Coin());
-
             map.GetCell(3, 6).Items.Add(Item.Hat());
-
             map.GetCell(2, 2).Items.Add(Item.Coin());
-
             map.GetCell(3, 3).Items.Add(Item.Hat());
 
 
