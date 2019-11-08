@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace RougeGame
 {
@@ -29,7 +32,7 @@ namespace RougeGame
 
                 //draw map
 
-                DrawMap();
+                Draw();
 
                 //get command
 
@@ -39,7 +42,7 @@ namespace RougeGame
 
                 //draw map
 
-                DrawMap();
+                Draw();
 
                 //enemy actions
 
@@ -82,15 +85,15 @@ namespace RougeGame
 
                     Move(Direction.S);
                     break;
-                case ConsoleKey.P:
+                //case ConsoleKey.P:
 
-                    PickUp();
-                    break;
+                //    PickUp();
+                //    break;
 
-                case ConsoleKey.I:
+                //case ConsoleKey.I:
 
-                    Inventory();
-                    break;
+                //    Inventory();
+                //    break;
 
                 case ConsoleKey.Q:
 
@@ -99,26 +102,50 @@ namespace RougeGame
 
             }
 
+            var actionMeny = new Dictionary<ConsoleKey, Action>()
+            {
+                { ConsoleKey.P, PickUp },
+                { ConsoleKey.I, Inventory }
+            };
+
+            if (actionMeny.ContainsKey( keyPressed))actionMeny[keyPressed].Invoke();
+                 
         }
 
         private void Inventory()
         {
+            var counter = 1;
+            var builder = new StringBuilder();
+            builder.AppendLine("Inventory:");
             foreach (var item in hero.Backpack)
             {
-                Console.WriteLine(item);
+                builder.AppendLine($"{counter}: \t{item}");
+                counter++;
             }
+
+            UI.AddMessage(builder.ToString());
         }
 
 
         private void PickUp()
         {
+            if(hero.Backpack.IsFull)
+            {
+
+                UI.AddMessage("Backpack is full");
+                return;
+            }
+
             var items = hero.Cell.Items;
-
             var item = items.FirstOrDefault();
-
             if (item == null) return;
+            if (hero.Backpack.Add(item))
+            {
+                //items.Remove(item);
+                UI.AddMessage($"Hero pick up {item.ToString()}");
+                items.Remove(item);
 
-            if (hero.Backpack.Add(item)) items.Remove(item);
+            }
         }
 
         private void Move(Position movement)
@@ -126,17 +153,21 @@ namespace RougeGame
         {
 
             Position newPosition = hero.Cell.Position + movement;
-
             Cell newCell = map.GetCell(newPosition);
 
+           // var opponent = (Creature)map.CreatureAt(newCell);
+            var opponent = map.CreatureAt(newCell) as Creature;
+            if (opponent != null) hero.Attack(opponent);
             if (newCell != null) hero.Cell = newCell;
 
         }
 
-        private void DrawMap()
+        private void Draw()
         {
             UI.Clear();
-            UI.Draw(map);
+            UI.DrawMap(map);
+            UI.PrintStats($"Health: {hero.Health}\n Enemys: {map.Creatures.Count}\n_______________");
+            UI.PrintLog();
 
         }
 
@@ -147,25 +178,34 @@ namespace RougeGame
 
             map = new Map(width: 10, height: 10);
 
+            AddCreatureAndItems();
+
+     
+        }
+
+
+        private void AddCreatureAndItems()
+        {
+
             var heroCell = map.GetCell(0, 0);
-
             hero = new Hero(heroCell);
-
             map.Creatures.Add(hero);
-            map.Creatures.Add(new Goblin(map.GetCell(4, 7)));
-            map.Creatures.Add(new Goblin(map.GetCell(2, 9)));
-            map.Creatures.Add(new Ogre(map.GetCell(2, 8)));
-            map.Creatures.Add(new Ogre(map.GetCell(8, 3)));
 
-            map.GetCell(3, 3).Items.Add(Item.Coin());
-            map.GetCell(3, 6).Items.Add(Item.Hat());
-            map.GetCell(2, 2).Items.Add(Item.Coin());
-            map.GetCell(3, 3).Items.Add(Item.Hat());
+            var random = new Random();
+            map.Creatures.Add(new Goblin(map.GetCell(random.Next(0,9), random.Next(0, 9))));
+            map.Creatures.Add(new Goblin(map.GetCell(random.Next(0, 9), random.Next(0, 9))));
+            map.Creatures.Add(new Ogre(map.GetCell(random.Next(0, 9), random.Next(0, 9))));
+            map.Creatures.Add(new Ogre(map.GetCell(random.Next(0, 9), random.Next(0, 9))));
 
+            map.Creatures.ForEach(c => c.AddMessage = UI.AddMessage);
+            map.Creatures.ForEach(c => c.AddMessage += (s) => Debug.WriteLine(s));
 
+            map.GetCell(random.Next(0, 9), random.Next(0, 9)).Items.Add(Item.Coin());
+            map.GetCell(random.Next(0, 9), random.Next(0, 9)).Items.Add(Item.Coin());
+            map.GetCell(random.Next(0, 9), random.Next(0, 9)).Items.Add(Item.Coin());
+            map.GetCell(random.Next(0, 9), random.Next(0, 9)).Items.Add(Item.Hat());
 
 
         }
-
     }
 }
